@@ -1,0 +1,181 @@
+[21:36, 19.01.2023] Adi Ubb: CREATE DATABASE LinkedIn;
+
+USE LinkedIn;
+
+CREATE TABLE Persoana
+(
+    ID INT PRIMARY KEY,
+    CNP INT UNIQUE,
+    Nume VARCHAR(255),
+    Data_nasterii DATE
+);
+
+CREATE TABLE CV
+(
+    ID INT PRIMARY KEY,
+    Persoana_ID INT,
+    Educatie_ID INT,
+    FOREIGN KEY (Persoana_ID) REFERENCES Persoana(ID),
+    FOREIGN KEY (Educatie_ID) REFERENCES Educatie(ID)
+);
+
+CREATE TABLE Educatie
+(
+    ID INT PRIMARY KEY,
+    Nume_unitate_educationala VARCHAR(255),
+    Nivel_educational VARCHAR(255),
+    Ani INT
+);
+
+CREATE TABLE Informatii_Educator
+(
+    ID INT PRIMARY KEY,
+    Nume_Educator VARCHAR(255),
+    Organizatie_educationala_ID INT,
+    Telefon INT,
+    Email VARCHAR(255),
+    FOREIGN KEY (Organizatie_educationala_ID) REFERENCES Educatie(ID)
+);
+[21:36, 19.01.2023] Adi Ubb: CREATE TRIGGER tr_CV_Insert
+AFTER INSERT ON CV
+FOR EACH ROW
+BEGIN
+    IF (NEW.ID IS NOT NULL) THEN
+    BEGIN
+        PRINT 'CV-ul a fost creat cu succes cu ID-ul: ' + CAST(NEW.ID AS VARCHAR(10));
+    END;
+END;
+
+
+
+[22:04, 19.01.2023] Adi Ubb: CREATE DATABASE ArtGallery;
+
+USE ArtGallery;
+
+CREATE TABLE Pictor (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Nume VARCHAR(255) NOT NULL,
+    Adresa VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE Tablou (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Titlu VARCHAR(255) NOT NULL,
+    An INT NOT NULL,
+    Pret DECIMAL(10,2) NOT NULL,
+    PictorId INT NOT NULL,
+    FOREIGN KEY (PictorId) REFERENCES Pictor(Id)
+);
+
+CREATE TABLE Galerie (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Nume VARCHAR(255) NOT NULL,
+    Adresa VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE Expunere (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    TablouId INT NOT NULL,
+    GalerieId INT NOT NULL,
+    DataInceput DATE NOT NULL,
+    DataSfarsit DATE NOT NULL,
+    FOREIGN KEY (TablouId) REFERENCES Tablou(Id),
+    FOREIGN KEY (GalerieId) REFERENCES Galerie(Id)
+);
+
+CREATE TABLE Client (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Nume VARCHAR(255) NOT NULL,
+    Telefon VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE Achizitie (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    TablouId INT NOT NULL,
+    ClientId INT NOT NULL,
+    DataAchizitie DATE NOT NULL,
+    FOREIGN KEY (TablouId) REFERENCES Tablou(Id),
+    FOREIGN KEY (ClientId) REFERENCES Client(Id)
+);
+
+INSERT INTO Pictor (Nume, Adresa) VALUES 
+    ('Pablo Picasso', 'Paris, Franta'), 
+    ('Vincent van Gogh', 'Amsterdam, Olanda'), 
+    ('Salvador Dali', 'Figueres, Spania'), 
+    ('Leonardo da Vinci', 'Florenta, Italia'),
+    ('Frida Kahlo', 'Ciudad de México, Mexic');
+
+
+INSERT INTO Tablou (Titlu, An, Pret, PictorId) VALUES 
+    ('Guernica', 1937, 100000, 1),
+    ('Starry Night', 1889, 80000, 2),
+    ('The Persistence of Memory', 1931, 120000, 3),
+    ('Mona Lisa', 1503, 500000, 4),
+    ('The Dreamer', 1940, 20000, 5);
+
+
+INSERT INTO Galerie (Nume, Adresa) VALUES 
+    ('Museu Picasso', 'Barcelona, Spania'),
+    ('Van Gogh Museum', 'Amsterdam, Olanda'),
+    ('Dali Museum', 'St. Petersburg, Florida, SUA'),
+    ('Uffizi Gallery', 'Florenta, Italia'),
+    ('Museo Frida Kahlo', 'Ciudad de México, Mexic');
+
+
+INSERT INTO Expunere (TablouId, GalerieId, DataInceput, DataSfarsit) VALUES
+    (1, 1, '1937-01-01', '1937-12-31'),
+    (2, 2, '1889-06-01', '1889-12-31'),
+    (3, 3, '1931-01-01', '1931-12-31'),
+    (4, 4, '1503-01-01', '1503-12-31'),
+    (5, 5, '1940-01-01', '1940-12-31');
+
+
+INSERT INTO Client (Nume, Telefon) VALUES
+    ('John Smith', '555-555-5555'),
+    ('Jane Doe', '555-555-5556'),
+    ('Bob Johnson', '555-555-5557'),
+    ('Samantha Williams', '555-555-5558'),
+    ('Michael Brown', '555-555-5559');
+
+
+INSERT INTO Achizitie (TablouId, ClientId, DataAchizitie) VALUES
+    (1, 1, '1937-12-31'),
+    (2, 2, '1889-12-31'),
+    (3, 3, '1931-12-31'),
+    (4, 4, '1503-12-31'),
+    (5, 5, '1940-12-31');
+[22:04, 19.01.2023] Adi Ubb: CREATE FUNCTION GetGalleryByPainterId(@PainterId INT)
+RETURNS TABLE
+AS
+RETURN
+    SELECT g.Id, g.Nume, COUNT(e.Id) as NumarTablouri
+    FROM Expunere e
+    JOIN Galerie g ON e.GalerieId = g.Id
+    JOIN Tablou t ON e.TablouId = t.Id
+    JOIN Pictor p ON t.PictorId = p.Id
+    WHERE p.Id = @PainterId
+    GROUP BY g.Id, g.Nume;
+
+SELECT * FROM GetGalleryByPainterId(3);
+
+
+
+
+
+CREATE DATABASE FERMA_ANIMALE2;
+GO 
+USE FERMA_ANIMALE2;
+CREATE TABLE Patron(id_p INT PRIMARY KEY, nume varchar(50), varsta int);
+CREATE TABLE Ingrijitor(id_i int primary key, nume varchar(50), id_p int FOREIGN KEY REFERENCES Patron(id_p) ON UPDATE CASCADE ON DELETE SET NULL);
+CREATE TABLE Animale(id_a int PRIMARY KEY, tip varchar(50), specie varchar(50));
+CREATE TABLE Complex(id_i int FOREIGN KEY REFERENCES Ingrijitor(id_i) ON UPDATE CASCADE ON DELETE CASCADE, id_a int FOREIGN KEY REFERENCES Animale(id_a) ON UPDATE CASCADE ON DELETE CASCADE, CONSTRAINT IA_Complex PRIMARY KEY(id_i, id_a));
+
+INSERT INTO Patron(id_p, nume, varsta) values(1, 'Robert', 20), (2, 'Serban', 50);
+INSERT INTO Ingrijitor(id_i, nume, id_p) values(34, 'Ion', 2), (54, 'Gheorghe', 1);
+INSERT INTO Animale(id_a, tip, specie) values(60, 'domestic', 'pesti'), (70, 'salbatic', 'mamifere');
+INSERT INTO Complex(id_i, id_a) values(34, 60), (34,70), (54, 60);
+
+
+UPDATE Patron SET varsta = 100 WHERE varsta > 30;
+UPDATE Animale SET specie = 'amfibieni' WHERE tip = 'domestic';
+DELETE FROM Ingrijitor WHERE nume = 'Gheorghe';
